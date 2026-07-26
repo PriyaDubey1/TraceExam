@@ -2,12 +2,16 @@ require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const incidentsRoute = require('./routes/incidents');
+const packetsRoute = require('./routes/packets');
+const custodyRoute = require('./routes/custody');
 
 const app = express();
 app.use(cors());
 app.use(express.json());
 
 app.use('/api/incidents', incidentsRoute);
+app.use('/api/packets', packetsRoute);
+app.use('/api/custody', custodyRoute);
 
 app.get('/', (req, res) => res.send('TraceExam API is running ✅'));
 
