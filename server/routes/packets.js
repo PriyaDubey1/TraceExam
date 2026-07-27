@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const pool = require('../db');
 const crypto = require('crypto');
+const QRCode = require('qrcode');
 
 // POST /api/packets  -> create a new paper packet
 router.post('/', async (req, res) => {
@@ -12,7 +13,11 @@ router.post('/', async (req, res) => {
       'INSERT INTO packets (id, exam_name, canary_phrase, paper_hash) VALUES ($1, $2, $3, $4) RETURNING *',
       [id, exam_name, canary_phrase, paper_hash]
     );
-    res.json(result.rows[0]);
+
+    // Generate a QR code (as a base64 image) containing the packet ID
+    const qr_code = await QRCode.toDataURL(id);
+
+    res.json({ ...result.rows[0], qr_code });
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: err.message });
