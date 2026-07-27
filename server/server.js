@@ -5,6 +5,7 @@ const incidentsRoute = require('./routes/incidents');
 const packetsRoute = require('./routes/packets');
 const custodyRoute = require('./routes/custody');
 const statsRoute = require('./routes/stats');
+const leakRoute = require('./routes/leak');
 
 const app = express();
 app.use(cors());
@@ -14,6 +15,7 @@ app.use('/api/incidents', incidentsRoute);
 app.use('/api/packets', packetsRoute);
 app.use('/api/custody', custodyRoute);
 app.use('/api/stats', statsRoute);
+app.use('/api/leak', leakRoute);
 
 app.get('/', (req, res) => res.send('TraceExam API is running ✅'));
 
