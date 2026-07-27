@@ -21,10 +21,11 @@ router.post('/', async (req, res) => {
       .digest('hex');
 
     const result = await pool.query(
-      `INSERT INTO custody_logs (packet_id, stage, official_name, location, prev_hash, entry_hash)
-       VALUES ($1, $2, $3, $4, $5, $6) RETURNING *`,
-      [packet_id, stage, official_name, location, prev_hash, entry_hash]
-    );
+  ` INSERT INTO custody_logs (packet_id, stage, official_name, location, timestamp, prev_hash, entry_hash)
+    VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *`,
+    [packet_id, stage, official_name, location, timestamp, prev_hash, entry_hash]
+   );
+   
     res.json(result.rows[0]);
   } catch (err) {
     console.error(err);

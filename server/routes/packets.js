@@ -37,4 +37,35 @@ router.get('/:id', async (req, res) => {
   }
 });
 
+router.get('/:id/verify', async (req, res) => {
+  try {
+    const logs = await pool.query(
+      'SELECT * FROM custody_logs WHERE packet_id = $1 ORDER BY timestamp ASC',
+      [req.params.id]
+    );
+    const crypto = require('crypto');
+    let expectedPrev = 'GENESIS';
+    let isValid = true;
+    let brokenAt = null;
+
+    for (const entry of logs.rows) {
+      const recalculated = crypto
+        .createHash('sha256')
+        .update(expectedPrev + entry.stage + entry.official_name + entry.timestamp)
+        .digest('hex');
+
+      if (entry.prev_hash !== expectedPrev || recalculated !== entry.entry_hash) {
+        isValid = false;
+        brokenAt = entry.stage;
+        break;
+      }
+      expectedPrev = entry.entry_hash;
+    }
+
+    res.json({ packet_id: req.params.id, chain_valid: isValid, broken_at: brokenAt });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 module.exports = router;
