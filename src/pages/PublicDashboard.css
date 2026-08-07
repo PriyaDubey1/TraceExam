@@ -1,0 +1,116 @@
+.dashboard-header h1 {
+  font-size: 26px;
+  color: #1A1A1A;
+  margin-bottom: 4px;
+}
+
+.tagline {
+  color: #666;
+  font-style: italic;
+  font-size: 14px;
+  margin-bottom: 24px;
+}
+
+.stats-row {
+  display: flex;
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.stat-card {
+  background: #FFFFFF;
+  border: 1px solid #E5E5E5;
+  border-radius: 8px;
+  padding: 16px 24px;
+  display: flex;
+  flex-direction: column;
+  min-width: 140px;
+}
+
+.stat-num {
+  font-size: 24px;
+  font-weight: 700;
+  color: #1A1A1A;
+}
+
+.stat-label {
+  font-size: 12px;
+  color: #666;
+  text-transform: uppercase;
+}
+
+.controls {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 24px;
+}
+
+.search-box, .status-filter {
+  padding: 8px 12px;
+  border: 1px solid #E5E5E5;
+  border-radius: 6px;
+  font-size: 14px;
+}
+
+.search-box {
+  flex: 1;
+  max-width: 320px;
+}
+
+.section-title {
+  font-size: 16px;
+  color: #1A1A1A;
+  margin-bottom: 12px;
+}
+
+.loading-text, .empty-text {
+  color: #666;
+  font-style: italic;
+}
+
+.case-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 16px;
+}
+
+.case-card {
+  background: #FFFFFF;
+  border: 1px solid #E5E5E5;
+  border-radius: 8px;
+  padding: 16px;
+}
+
+.status-badge {
+  display: inline-block;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  border: 1px solid;
+  border-radius: 4px;
+  padding: 2px 8px;
+  margin-bottom: 8px;
+}
+
+.case-title {
+  font-size: 15px;
+  color: #1A1A1A;
+  margin: 0 0 4px;
+}
+
+.case-meta {
+  font-size: 12px;
+  color: #888;
+  margin-bottom: 8px;
+}
+
+.case-desc {
+  font-size: 13px;
+  color: #333;
+  margin-bottom: 8px;
+}
+
+.case-action {
+  font-size: 12px;
+  color: #444;
+}
