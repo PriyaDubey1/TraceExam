@@ -1,0 +1,163 @@
+.verify-header h1 {
+  font-size: 26px;
+  color: #1A1A1A;
+  margin-bottom: 4px;
+}
+
+.verify-header .tagline {
+  color: #666;
+  font-size: 14px;
+  margin-bottom: 24px;
+}
+
+.search-row {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 20px;
+  max-width: 500px;
+}
+
+.search-row input {
+  flex: 1;
+  padding: 10px 12px;
+  border: 1px solid #E5E5E5;
+  border-radius: 6px;
+  font-size: 14px;
+}
+
+.search-row button {
+  background: #1A1A1A;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.error-text {
+  color: #C0392B;
+  font-size: 13px;
+}
+
+.packet-card {
+  background: #FFFFFF;
+  border: 1px solid #E5E5E5;
+  border-radius: 8px;
+  padding: 24px;
+  max-width: 700px;
+}
+
+.packet-meta {
+  display: flex;
+  gap: 40px;
+  margin-bottom: 24px;
+}
+
+.meta-label {
+  font-size: 11px;
+  color: #888;
+  text-transform: uppercase;
+}
+
+.meta-value {
+  font-size: 14px;
+  font-weight: 600;
+  color: #1A1A1A;
+  margin: 2px 0 0;
+}
+
+.meta-value.mono {
+  font-family: monospace;
+  font-weight: 400;
+  color: #666;
+}
+
+.timeline-title {
+  font-size: 14px;
+  color: #1A1A1A;
+  margin-bottom: 16px;
+}
+
+.timeline {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 24px;
+  position: relative;
+}
+
+.timeline::before {
+  content: '';
+  position: absolute;
+  top: 6px;
+  left: 30px;
+  right: 30px;
+  height: 1px;
+  background: #E5E5E5;
+}
+
+.timeline-node {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  position: relative;
+  z-index: 1;
+  flex: 1;
+}
+
+.node-dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: #E5E5E5;
+}
+
+.timeline-node.filled .node-dot {
+  background: #FF5D1F;
+}
+
+.node-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: #1A1A1A;
+}
+
+.node-time {
+  font-size: 11px;
+  color: #888;
+}
+
+.node-time.pending {
+  color: #BBB;
+  font-style: italic;
+}
+
+.verify-btn {
+  background: #FF5D1F;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 6px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.verify-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.verify-result {
+  margin-top: 14px;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.verify-result.valid {
+  color: #158B2B;
+}
+
+.verify-result.invalid {
+  color: #C0392B;
+}
