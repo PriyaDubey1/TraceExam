@@ -1,0 +1,87 @@
+.monitor-header h1 {
+  font-size: 26px;
+  color: #1A1A1A;
+  margin-bottom: 4px;
+}
+
+.monitor-header .tagline {
+  color: #666;
+  font-size: 14px;
+  margin-bottom: 20px;
+}
+
+.scan-btn {
+  background: #FF5D1F;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 6px;
+  font-weight: 600;
+  cursor: pointer;
+  margin-bottom: 12px;
+}
+
+.scan-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.scan-stats {
+  display: flex;
+  gap: 24px;
+  font-size: 12px;
+  color: #666;
+  margin-bottom: 20px;
+}
+
+.feed-list {
+  display: flex;
+  flex-direction: column;
+  max-width: 640px;
+}
+
+.feed-item {
+  background: #FFFFFF;
+  border-bottom: 1px solid #E5E5E5;
+  padding: 14px 16px;
+}
+
+.feed-item.flagged {
+  border-left: 3px solid #FF5D1F;
+  background: #FFFAF7;
+}
+
+.feed-item-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 6px;
+}
+
+.author-handle {
+  font-size: 13px;
+  font-weight: 600;
+  color: #444;
+}
+
+.leak-tag {
+  font-size: 10px;
+  font-weight: 700;
+  color: #FF5D1F;
+  background: #FFF3EC;
+  padding: 2px 8px;
+  border-radius: 4px;
+  text-transform: uppercase;
+}
+
+.post-time {
+  margin-left: auto;
+  font-size: 11px;
+  color: #999;
+}
+
+.post-text {
+  font-size: 13px;
+  color: #333;
+  margin: 0;
+}

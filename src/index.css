@@ -12,3 +12,92 @@ body {
 #root {
   min-height: 100vh;
 }
+body.dark {
+  background: #121212;
+  color: #F5F5F5;
+}
+
+body.dark .sidebar {
+  background: #1A1A1A;
+  border-color: #2A2A2A;
+}
+
+body.dark .sidebar-logo,
+body.dark .nav-item {
+  color: #F5F5F5;
+}
+
+body.dark .nav-item.active {
+  background: #242424;
+}
+
+body.dark .status-text {
+  color: #A0A0A0;
+}
+/* Main content area background */
+body.dark .app-shell {
+  background: #121212;
+}
+
+body.dark .main-content {
+  background: #121212;
+  color: #F5F5F5;
+}
+
+/* Headings and text across all pages */
+body.dark h1,
+body.dark h2,
+body.dark h3 {
+  color: #F5F5F5 !important;
+}
+
+body.dark p,
+body.dark .tagline,
+body.dark label {
+  color: #A0A0A0 !important;
+}
+
+/* All white cards/panels across pages */
+body.dark .stat-card,
+body.dark .case-card,
+body.dark .scan-form,
+body.dark .trail-panel,
+body.dark .packet-card,
+body.dark .upload-zone,
+body.dark .result-panel,
+body.dark .feed-item,
+body.dark .ai-analysis {
+  background: #1E1E1E !important;
+  border-color: #2A2A2A !important;
+}
+
+/* Inputs, selects, search boxes */
+body.dark input,
+body.dark select,
+body.dark .search-box,
+body.dark .status-filter {
+  background: #1E1E1E !important;
+  border-color: #2A2A2A !important;
+  color: #F5F5F5 !important;
+}
+
+/* Case titles / meta values / trail text */
+body.dark .case-title,
+body.dark .meta-value,
+body.dark .node-label,
+body.dark .trail-stage,
+body.dark .author-handle,
+body.dark .post-text {
+  color: #F5F5F5 !important;
+}
+
+body.dark .case-meta,
+body.dark .case-desc,
+body.dark .case-action,
+body.dark .meta-label,
+body.dark .trail-official,
+body.dark .trail-location,
+body.dark .trail-time,
+body.dark .node-time {
+  color: #A0A0A0 !important;
+}

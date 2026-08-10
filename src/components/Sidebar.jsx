@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { NavLink } from 'react-router-dom';
+import { useTheme } from '../context/ThemeContext';
 import './Sidebar.css';
 
 const navItems = [
@@ -12,7 +13,7 @@ const navItems = [
 
 function Sidebar() {
   const [collapsed, setCollapsed] = useState(false);
-  const [dark, setDark] = useState(false);
+  const { dark, toggleTheme } = useTheme();
 
   return (
     <aside className={`sidebar ${collapsed ? 'collapsed' : ''} ${dark ? 'dark' : ''}`}>
@@ -38,7 +39,7 @@ function Sidebar() {
 
       <div className="sidebar-bottom">
         {!collapsed && <span className="status-text">System Status: Online</span>}
-        <button className="theme-toggle" onClick={() => setDark(!dark)}>
+        <button className="theme-toggle" onClick={toggleTheme}>
           {dark ? '☀️' : '🌙'}
         </button>
       </div>
