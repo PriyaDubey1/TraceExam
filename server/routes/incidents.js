@@ -9,7 +9,7 @@ router.get('/', async (req, res) => {
     res.json(result.rows);
   } catch (err) {
     console.error(err);
-    res.status(500).json({ error: err.message });
+    res.status(500).json({ error: 'Something went wrong on our end. Please try again.' });
   }
 });
 
@@ -22,7 +22,7 @@ router.get('/demo', async (req, res) => {
     res.json(result.rows);
   } catch (err) {
     console.error(err);
-    res.status(500).json({ error: err.message });
+    res.status(500).json({ error: 'Something went wrong on our end. Please try again.' });
   }
 });
 
@@ -36,7 +36,7 @@ router.get('/:id', async (req, res) => {
     res.json(result.rows[0]);
   } catch (err) {
     console.error(err);
-    res.status(500).json({ error: err.message });
+    res.status(500).json({ error: 'Something went wrong on our end. Please try again.' });
   }
 });
 

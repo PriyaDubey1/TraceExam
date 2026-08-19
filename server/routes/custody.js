@@ -6,6 +6,15 @@ const crypto = require('crypto');
 // POST /api/custody -> log a custody scan entry
 router.post('/', async (req, res) => {
   const { packet_id, stage, official_name, location } = req.body;
+
+  const validStages = ['press', 'warehouse', 'transport', 'exam_centre'];
+  if (!packet_id || !stage || !official_name || !location) {
+    return res.status(400).json({ error: 'packet_id, stage, official_name, and location are all required.' });
+  }
+  if (!validStages.includes(stage)) {
+    return res.status(400).json({ error: `stage must be one of: ${validStages.join(', ')}` });
+  }
+
   try {
     // get the last entry's hash for this packet (to build the chain)
     const last = await pool.query(
@@ -21,15 +30,15 @@ router.post('/', async (req, res) => {
       .digest('hex');
 
     const result = await pool.query(
-  ` INSERT INTO custody_logs (packet_id, stage, official_name, location, timestamp, prev_hash, entry_hash)
-    VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *`,
-    [packet_id, stage, official_name, location, timestamp, prev_hash, entry_hash]
-   );
-   
+      `INSERT INTO custody_logs (packet_id, stage, official_name, location, timestamp, prev_hash, entry_hash)
+       VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *`,
+      [packet_id, stage, official_name, location, timestamp, prev_hash, entry_hash]
+    );
+
     res.json(result.rows[0]);
   } catch (err) {
     console.error(err);
-    res.status(500).json({ error: err.message });
+    res.status(500).json({ error: 'Something went wrong on our end. Please try again.' });
   }
 });
 
