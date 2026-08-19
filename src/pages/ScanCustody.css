@@ -1,5 +1,22 @@
+.scan-header {
+  margin-bottom: 28px;
+  text-align: center;
+}
+
+.page-eyebrow {
+  display: inline-block;
+  font-family: 'SF Mono', 'Roboto Mono', Menlo, monospace;
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #FF5D1F;
+  margin-bottom: 8px;
+}
+
 .scan-header h1 {
   font-size: 26px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
   color: #1A1A1A;
   margin-bottom: 4px;
 }
@@ -7,19 +24,21 @@
 .scan-header .tagline {
   color: #666;
   font-size: 14px;
-  margin-bottom: 28px;
 }
 
 .scan-body {
   display: flex;
   gap: 24px;
   align-items: flex-start;
+  justify-content: center;
+  max-width: 720px;
+  margin: 0 auto;
 }
 
 .scan-form {
   background: #FFFFFF;
   border: 1px solid #E5E5E5;
-  border-radius: 8px;
+  border-radius: 10px;
   padding: 24px;
   max-width: 360px;
   flex: 1;
@@ -36,10 +55,17 @@
 
 .scan-form input,
 .scan-form select {
-  padding: 8px 10px;
+  padding: 9px 10px;
   border: 1px solid #E5E5E5;
   border-radius: 6px;
   font-size: 14px;
+  transition: border-color 0.15s ease;
+}
+
+.scan-form input:focus,
+.scan-form select:focus {
+  outline: none;
+  border-color: #FF5D1F;
 }
 
 .scan-form button {
@@ -47,10 +73,16 @@
   background: #FF5D1F;
   color: white;
   border: none;
-  padding: 10px;
+  padding: 11px;
   border-radius: 6px;
   font-weight: 600;
   cursor: pointer;
+  transition: background 0.15s ease, transform 0.15s ease;
+}
+
+.scan-form button:hover:not(:disabled) {
+  background: #E5501A;
+  transform: translateY(-1px);
 }
 
 .scan-form button:disabled {
@@ -73,7 +105,7 @@
 .trail-panel {
   background: #FFFFFF;
   border: 1px solid #E5E5E5;
-  border-radius: 8px;
+  border-radius: 10px;
   padding: 20px;
   flex: 1;
   max-width: 320px;
@@ -81,8 +113,23 @@
 
 .trail-panel h2 {
   font-size: 15px;
+  font-weight: 600;
   margin: 0 0 12px;
   color: #1A1A1A;
+}
+
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding: 24px 8px;
+  color: #BBB;
+}
+
+.empty-icon {
+  color: #D8D8D5;
+  margin-bottom: 10px;
 }
 
 .empty-text {
@@ -113,4 +160,58 @@
 .trail-time {
   font-size: 11px;
   color: #999;
+  font-family: 'SF Mono', 'Roboto Mono', Menlo, monospace;
+}
+body.dark .scan-header h1 {
+  color: #F5F5F5;
+}
+
+body.dark .scan-header .tagline {
+  color: #999;
+}
+
+body.dark .scan-form,
+body.dark .trail-panel {
+  background: #1E1E1E;
+  border-color: #2A2A2A;
+}
+
+body.dark .scan-form label {
+  color: #CCCCCC;
+}
+
+body.dark .scan-form input,
+body.dark .scan-form select {
+  background: #141414;
+  border-color: #2A2A2A;
+  color: #F5F5F5;
+}
+
+body.dark .trail-panel h2 {
+  color: #F5F5F5;
+}
+
+body.dark .empty-state {
+  color: #555;
+}
+
+body.dark .empty-icon {
+  color: #333;
+}
+
+body.dark .empty-text {
+  color: #777;
+}
+
+body.dark .trail-stage {
+  color: #F5F5F5;
+}
+
+body.dark .trail-official,
+body.dark .trail-location {
+  color: #CCCCCC;
+}
+
+body.dark .trail-time {
+  color: #777;
 }

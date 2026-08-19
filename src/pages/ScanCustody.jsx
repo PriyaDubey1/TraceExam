@@ -1,4 +1,6 @@
 import { useState } from 'react';
+import { PackageCheck } from 'lucide-react';
+import { useToast } from '../context/ToastContext';
 import './ScanCustody.css';
 
 const API_BASE = 'http://localhost:4000';
@@ -11,6 +13,7 @@ function ScanCustody() {
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState(null);
   const [error, setError] = useState(null);
+  const { showToast } = useToast();
   const [trail, setTrail] = useState([]);
 
   const fetchTrail = async (id) => {
@@ -45,12 +48,14 @@ function ScanCustody() {
       if (!res.ok) throw new Error('Failed to log scan');
 
       setMessage('Custody scan logged successfully.');
+      showToast('Custody scan logged successfully.', 'success');
       fetchTrail(packetId);
       setStage('');
       setOfficialName('');
       setLocation('');
     } catch (err) {
       setError('Something went wrong. Please check the Packet ID and try again.');
+      showToast('Failed to log scan. Please try again.', 'error');
       console.error(err);
     } finally {
       setLoading(false);
@@ -60,6 +65,7 @@ function ScanCustody() {
   return (
     <div className="scan-page">
       <header className="scan-header">
+        <span className="page-eyebrow">Custody Log</span>
         <h1>Log Custody Scan</h1>
         <p className="tagline">Record a physical handoff of an exam paper packet.</p>
       </header>
@@ -112,7 +118,12 @@ function ScanCustody() {
 
         <div className="trail-panel">
           <h2>Recent Scans</h2>
-          {trail.length === 0 && <p className="empty-text">No scans logged yet for this packet.</p>}
+          {trail.length === 0 && (
+            <div className="empty-state">
+              <PackageCheck size={28} strokeWidth={1.5} className="empty-icon" />
+              <p className="empty-text">No scans logged yet for this packet.</p>
+            </div>
+          )}
           {trail.map((entry) => (
             <div key={entry.id} className="trail-item">
               <span className="trail-stage">{entry.stage}</span>

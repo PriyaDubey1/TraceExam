@@ -6,6 +6,7 @@ import ReportLeak from './pages/ReportLeak';
 import ScanCustody from './pages/ScanCustody';
 import VerifyChain from './pages/VerifyChain';
 import MonitorFeed from './pages/MonitorFeed';
+import { useLenis } from './hooks/useLenis';
 import './App.css';
 
 function App() {

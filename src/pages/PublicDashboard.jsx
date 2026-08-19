@@ -1,4 +1,9 @@
+import { useRef } from 'react';
+import gsap from 'gsap';
+import { useGSAP } from '@gsap/react';
+import { SkeletonCard, SkeletonStat } from '../components/Skeleton';
 import { useState, useEffect } from 'react';
+import { Search } from 'lucide-react';
 import './PublicDashboard.css';
 
 const API_BASE = 'http://localhost:4000';
@@ -16,6 +21,19 @@ function PublicDashboard() {
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('All');
   const [loading, setLoading] = useState(true);
+  const gridRef = useRef(null);
+
+useGSAP(() => {
+  if (!loading && filtered.length > 0) {
+    gsap.from('.case-card', {
+      opacity: 0,
+      y: 12,
+      duration: 0.35,
+      stagger: 0.04,
+      ease: 'power2.out',
+    });
+  }
+}, { dependencies: [search, statusFilter, loading], scope: gridRef });
 
   useEffect(() => {
     fetch(`${API_BASE}/api/stats`)
@@ -44,39 +62,50 @@ function PublicDashboard() {
   return (
     <div className="dashboard">
       <header className="dashboard-header">
+        <span className="page-eyebrow">Public Record</span>
         <h1>Public Accountability Dashboard</h1>
         <p className="tagline">From press to paper to public</p>
       </header>
 
-      {stats && (
-        <div className="stats-row">
-          <div className="stat-card">
-            <span className="stat-num">{stats.total_incidents}</span>
-            <span className="stat-label">Incidents Tracked</span>
-          </div>
-          <div className="stat-card">
-            <span className="stat-num">{stats.confirmed_leaks}</span>
-            <span className="stat-label">Confirmed Leaks</span>
-          </div>
-          <div className="stat-card">
-            <span className="stat-num">{stats.total_packets_tracked}</span>
-            <span className="stat-label">Packets Tracked</span>
-          </div>
-          <div className="stat-card">
-            <span className="stat-num">{stats.total_custody_scans}</span>
-            <span className="stat-label">Custody Scans</span>
-          </div>
-        </div>
-      )}
+      {stats ? (
+  <div className="stats-row">
+    <div className="stat-card">
+      <span className="stat-num">{stats.total_incidents}</span>
+      <span className="stat-label">Incidents Tracked</span>
+    </div>
+    <div className="stat-card">
+      <span className="stat-num">{stats.confirmed_leaks}</span>
+      <span className="stat-label">Confirmed Leaks</span>
+    </div>
+    <div className="stat-card">
+      <span className="stat-num">{stats.total_packets_tracked}</span>
+      <span className="stat-label">Packets Tracked</span>
+    </div>
+    <div className="stat-card">
+      <span className="stat-num">{stats.total_custody_scans}</span>
+      <span className="stat-label">Custody Scans</span>
+    </div>
+  </div>
+) : (
+  <div className="stats-row">
+    <SkeletonStat />
+    <SkeletonStat />
+    <SkeletonStat />
+    <SkeletonStat />
+  </div>
+)}
 
       <div className="controls">
-        <input
-          type="text"
-          placeholder="Search incidents, regions, or exam names..."
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          className="search-box"
-        />
+        <div className="search-wrap">
+          <Search className="search-icon" size={16} strokeWidth={1.75} />
+          <input
+            type="text"
+            placeholder="Search incidents, regions, or exam names..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="search-box"
+          />
+        </div>
         <select
           value={statusFilter}
           onChange={(e) => setStatusFilter(e.target.value)}
@@ -92,12 +121,16 @@ function PublicDashboard() {
 
       <h2 className="section-title">Recent Cases</h2>
 
-      {loading && <p className="loading-text">Loading records...</p>}
-      {!loading && filtered.length === 0 && (
-        <p className="empty-text">No incidents match your filters.</p>
-      )}
+      {loading && (
+  <div className="case-grid">
+    <SkeletonCard />
+    <SkeletonCard />
+    <SkeletonCard />
+    <SkeletonCard />
+  </div>
+)}
 
-      <div className="case-grid">
+      <div className="case-grid" ref={gridRef}>
         {filtered.map((inc) => (
           <div key={inc.id} className="case-card">
             <span

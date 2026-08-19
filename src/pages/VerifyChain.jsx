@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { CircleCheck, TriangleAlert } from 'lucide-react';
 import './VerifyChain.css';
 
 const API_BASE = 'http://localhost:4000';
@@ -58,6 +59,7 @@ function VerifyChain() {
   return (
     <div className="verify-page">
       <header className="verify-header">
+        <span className="page-eyebrow">Chain Integrity</span>
         <h1>Custody Chain Verification</h1>
         <p className="tagline">Authenticate the lifecycle of exam packets across all custody nodes.</p>
       </header>
@@ -118,9 +120,11 @@ function VerifyChain() {
 
           {verifyResult && (
             <p className={`verify-result ${verifyResult.chain_valid ? 'valid' : 'invalid'}`}>
-              {verifyResult.chain_valid
-                ? '✓ Chain valid — no tampering detected'
-                : `⚠ Tampering detected at: ${verifyResult.broken_at}`}
+              {verifyResult.chain_valid ? (
+                <><CircleCheck size={16} strokeWidth={2} /> Chain valid — no tampering detected</>
+              ) : (
+                <><TriangleAlert size={16} strokeWidth={2} /> Tampering detected at: {verifyResult.broken_at}</>
+              )}
             </p>
           )}
         </div>

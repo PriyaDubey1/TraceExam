@@ -1,5 +1,21 @@
+.monitor-header {
+  margin-bottom: 24px;
+  text-align: center;
+}
+.page-eyebrow {
+  display: inline-block;
+  font-family: 'SF Mono', 'Roboto Mono', Menlo, monospace;
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #FF5D1F;
+  margin-bottom: 8px;
+}
+
 .monitor-header h1 {
   font-size: 26px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
   color: #1A1A1A;
   margin-bottom: 4px;
 }
@@ -7,7 +23,6 @@
 .monitor-header .tagline {
   color: #666;
   font-size: 14px;
-  margin-bottom: 20px;
 }
 
 .scan-btn {
@@ -19,6 +34,12 @@
   font-weight: 600;
   cursor: pointer;
   margin-bottom: 12px;
+  transition: background 0.15s ease, transform 0.15s ease;
+}
+
+.scan-btn:hover:not(:disabled) {
+  background: #E5501A;
+  transform: translateY(-1px);
 }
 
 .scan-btn:disabled {
@@ -28,22 +49,30 @@
 
 .scan-stats {
   display: flex;
+  justify-content: center;
   gap: 24px;
   font-size: 12px;
   color: #666;
   margin-bottom: 20px;
+  font-family: 'SF Mono', 'Roboto Mono', Menlo, monospace;
 }
 
 .feed-list {
   display: flex;
   flex-direction: column;
   max-width: 640px;
+  margin: 0 auto;
 }
 
 .feed-item {
   background: #FFFFFF;
   border-bottom: 1px solid #E5E5E5;
   padding: 14px 16px;
+  transition: background 0.15s ease;
+}
+
+.feed-item:hover {
+  background: #FAFAF9;
 }
 
 .feed-item.flagged {
@@ -51,11 +80,20 @@
   background: #FFFAF7;
 }
 
+.feed-item.flagged:hover {
+  background: #FFF3EC;
+}
+
 .feed-item-header {
   display: flex;
   align-items: center;
   gap: 8px;
   margin-bottom: 6px;
+}
+
+.platform-icon {
+  color: #666;
+  flex-shrink: 0;
 }
 
 .author-handle {
@@ -78,10 +116,56 @@
   margin-left: auto;
   font-size: 11px;
   color: #999;
+  font-family: 'SF Mono', 'Roboto Mono', Menlo, monospace;
 }
 
 .post-text {
   font-size: 13px;
   color: #333;
   margin: 0;
+  line-height: 1.5;
+}
+body.dark .monitor-header h1 {
+  color: #F5F5F5;
+}
+
+body.dark .monitor-header .tagline {
+  color: #999;
+}
+
+body.dark .scan-stats {
+  color: #999;
+}
+
+body.dark .feed-item {
+  background: #1E1E1E;
+  border-bottom-color: #2A2A2A;
+}
+
+body.dark .feed-item:hover {
+  background: #242424;
+}
+
+body.dark .feed-item.flagged {
+  background: #241A15;
+}
+
+body.dark .feed-item.flagged:hover {
+  background: #2A1D14;
+}
+
+body.dark .platform-icon {
+  color: #999;
+}
+
+body.dark .author-handle {
+  color: #DDD;
+}
+
+body.dark .post-time {
+  color: #666;
+}
+
+body.dark .post-text {
+  color: #CCCCCC;
 }

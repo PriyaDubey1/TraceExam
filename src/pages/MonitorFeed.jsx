@@ -1,12 +1,13 @@
 import { useState, useEffect } from 'react';
+import { Send, AtSign, MessageCircle, Smartphone } from 'lucide-react';
 import './MonitorFeed.css';
 
 const API_BASE = 'http://localhost:4000';
 
 const PLATFORM_ICONS = {
-  Telegram: '✈️',
-  Twitter: '🐦',
-  WhatsApp: '💬',
+  Telegram: Send,
+  Twitter: AtSign,
+  WhatsApp: MessageCircle,
 };
 
 function MonitorFeed() {
@@ -47,6 +48,7 @@ function MonitorFeed() {
   return (
     <div className="monitor-page">
       <header className="monitor-header">
+        <span className="page-eyebrow">Live Feed</span>
         <h1>Live Monitoring Feed</h1>
         <p className="tagline">Simulated social-media scanning for leaked exam content.</p>
       </header>
@@ -62,17 +64,20 @@ function MonitorFeed() {
       </div>
 
       <div className="feed-list">
-        {posts.map((post) => (
-          <div key={post.id} className={`feed-item ${post.flagged ? 'flagged' : ''}`}>
-            <div className="feed-item-header">
-              <span className="platform-icon">{PLATFORM_ICONS[post.platform] || '📱'}</span>
-              <span className="author-handle">{post.author_handle}</span>
-              {post.flagged && <span className="leak-tag">Leak detected · {post.matched_packet_id}</span>}
-              <span className="post-time">{new Date(post.posted_at).toLocaleTimeString()}</span>
+        {posts.map((post) => {
+          const PlatformIcon = PLATFORM_ICONS[post.platform] || Smartphone;
+          return (
+            <div key={post.id} className={`feed-item ${post.flagged ? 'flagged' : ''}`}>
+              <div className="feed-item-header">
+                <PlatformIcon className="platform-icon" size={15} strokeWidth={1.75} />
+                <span className="author-handle">{post.author_handle}</span>
+                {post.flagged && <span className="leak-tag">Leak detected · {post.matched_packet_id}</span>}
+                <span className="post-time">{new Date(post.posted_at).toLocaleTimeString()}</span>
+              </div>
+              <p className="post-text">{post.post_text}</p>
             </div>
-            <p className="post-text">{post.post_text}</p>
-          </div>
-        ))}
+          );
+        })}
       </div>
     </div>
   );

@@ -1,4 +1,6 @@
+import { useToast } from '../context/ToastContext';
 import { useState } from 'react';
+import { UploadCloud, Sparkles } from 'lucide-react';
 import './ReportLeak.css';
 
 const API_BASE = 'http://localhost:4000';
@@ -9,6 +11,7 @@ function ReportLeak() {
   const [result, setResult] = useState(null);
   const [error, setError] = useState(null);
   const [dragOver, setDragOver] = useState(false);
+  const { showToast } = useToast();
 
   const handleFile = (selectedFile) => {
     setFile(selectedFile);
@@ -38,8 +41,12 @@ function ReportLeak() {
       });
       const data = await res.json();
       setResult(data);
+      if (data.match_found) showToast('Leak confirmed — incident created.', 'success');
+     else if (data.ai_flagged) showToast('AI flagged suspicious content.', 'error');
+     else showToast('No leak detected in this file.', 'success');
     } catch (err) {
       setError('Something went wrong. Please try again.');
+      showToast('Analysis failed. Please try again.', 'error');
       console.error(err);
     } finally {
       setLoading(false);
@@ -49,6 +56,7 @@ function ReportLeak() {
   return (
     <div className="report-leak">
       <header className="report-header">
+        <span className="page-eyebrow">AI Triage</span>
         <h1>Report a Suspected Leak</h1>
         <p className="tagline">Upload an image, PDF, or document — AI will analyze it instantly.</p>
       </header>
@@ -67,7 +75,7 @@ function ReportLeak() {
           style={{ display: 'none' }}
           onChange={(e) => e.target.files[0] && handleFile(e.target.files[0])}
         />
-        <div className="upload-icon">⬆</div>
+        <UploadCloud className="upload-icon" size={30} strokeWidth={1.5} />
         <p className="upload-text">
           {file ? file.name : 'Drag a file here or click to browse'}
         </p>
@@ -107,7 +115,7 @@ function ReportLeak() {
 
           {result.ai_summary && (
             <div className="ai-analysis">
-              <p className="ai-label">✨ AI Analysis</p>
+              <p className="ai-label"><Sparkles size={14} strokeWidth={2} /> AI Analysis</p>
               <p>{result.ai_summary}</p>
             </div>
           )}
