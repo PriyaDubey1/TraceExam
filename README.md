@@ -4,7 +4,6 @@
 
 An AI-powered exam-paper-leak prevention and public-accountability system, built for a national-level hackathon.
 
-**Team TechMates:** Priya Dubey · Palak Tripathi · Shambhavi Jha · Sweta Singh
 
 ---
 
