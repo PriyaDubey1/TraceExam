@@ -1,0 +1,150 @@
+.sidebar {
+  width: 240px;
+  background: #F7F7F5;
+  border-right: 1px solid #E5E5E5;
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  transition: width 0.2s ease;
+  flex-shrink: 0;
+}
+
+.sidebar.collapsed {
+  width: 72px;
+}
+
+.sidebar-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 22px 18px 20px;
+}
+
+.sidebar-logo {
+  font-weight: 700;
+  font-size: 17px;
+  letter-spacing: -0.01em;
+  color: #1A1A1A;
+}
+
+.collapse-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 4px;
+  color: #8A8A8A;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.collapse-btn:hover {
+  background: #ECECE9;
+  color: #1A1A1A;
+}
+
+.sidebar-nav {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 4px 10px;
+}
+
+.nav-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 9px 11px;
+  border-radius: 6px;
+  text-decoration: none;
+  color: #4A4A4A;
+  border-left: 3px solid transparent;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.nav-item:hover {
+  background: #EFEFEC;
+  color: #1A1A1A;
+}
+
+.nav-item.active {
+  background: #FFFFFF;
+  border-left: 3px solid #FF5D1F;
+  color: #1A1A1A;
+  font-weight: 600;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+}
+
+.nav-item.active .nav-icon {
+  color: #FF5D1F;
+}
+
+.nav-icon {
+  flex-shrink: 0;
+  color: currentColor;
+}
+
+.nav-label {
+  font-size: 13.5px;
+}
+
+.sidebar-bottom {
+  margin-top: auto;
+  padding: 16px 18px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-top: 1px solid #E5E5E5;
+}
+
+.status-text {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-family: 'SF Mono', 'Roboto Mono', Menlo, monospace;
+  font-size: 11px;
+  letter-spacing: 0.02em;
+  color: #8A8A8A;
+}
+
+.status-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #3FB27F;
+  box-shadow: 0 0 0 3px rgba(63, 178, 127, 0.15);
+  flex-shrink: 0;
+}
+
+.theme-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 4px;
+  color: #8A8A8A;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.theme-toggle:hover {
+  background: #ECECE9;
+  color: #1A1A1A;
+}
+.sidebar-logo {
+  font-weight: 700;
+  font-size: 17px;
+  letter-spacing: -0.01em;
+  color: #1A1A1A;
+  text-decoration: none;
+  cursor: pointer;
+  transition: opacity 0.15s ease;
+}
+
+.sidebar-logo:hover {
+  opacity: 0.7;
+}
