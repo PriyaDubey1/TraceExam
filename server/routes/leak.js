@@ -1,3 +1,5 @@
+const { PDFParse } = require('pdf-parse');
+const crypto = require('crypto');
 const express = require('express');
 const router = express.Router();
 const pool = require('../db');
@@ -6,14 +8,13 @@ const { rateLimit } = require('express-rate-limit');
 const fs = require('fs');
 const path = require('path');
 const Tesseract = require('tesseract.js');
-const pdfParse = require('pdf-parse');
 const officeParser = require('officeparser');
 const { fromPath } = require('pdf2pic');
 const Groq = require('groq-sdk');
+const stringSimilarity = require('string-similarity');
 
 const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
 
-// File upload: 15MB max, sirf image/pdf/office docs allow
 const upload = multer({
   dest: 'uploads/',
   limits: { fileSize: 15 * 1024 * 1024 },
@@ -32,22 +33,42 @@ const upload = multer({
   },
 });
 
-// Ye endpoint costly hai (Groq API call), isliye stricter limit: 10 requests / 15 min per IP
 const leakLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
   max: 10,
   message: { error: 'Too many leak-report requests. Please wait before trying again.' },
 });
 
-// ---------- AI helper: ask Groq to judge whether text looks like a genuine exam-paper leak ----------
+function fuzzyMatchScore(text, phrase) {
+  const phraseWords = phrase.trim().split(/\s+/);
+  const textWords = text.trim().split(/\s+/);
+  const windowSize = phraseWords.length;
+
+  if (textWords.length < windowSize) {
+    return stringSimilarity.compareTwoStrings(text.toLowerCase(), phrase.toLowerCase());
+  }
+
+  let bestScore = 0;
+  for (let i = 0; i <= textWords.length - windowSize; i++) {
+    const window = textWords.slice(i, i + windowSize).join(' ');
+    const score = stringSimilarity.compareTwoStrings(window.toLowerCase(), phrase.toLowerCase());
+    if (score > bestScore) bestScore = score;
+  }
+  return bestScore;
+}
+
+const FUZZY_MATCH_THRESHOLD = 0.6;
+
 async function aiClassifyLeak(text) {
   const completion = await groq.chat.completions.create({
-    model: 'llama-3.3-70b-versatile',
+    model: 'openai/gpt-oss-120b',
     messages: [
       {
         role: 'system',
         content:
-          'You are an exam-integrity analyst. Given a piece of text (possibly from a leaked document, social media post, or chat), decide if it looks like a genuine exam paper leak (answer key, question paper, exam-related confidential content). Respond ONLY in strict JSON: {"is_suspected_leak": true/false, "confidence": "High"|"Medium"|"Low", "summary": "one plain-language sentence explaining why"}',
+          'You are an exam-integrity triage analyst. IMPORTANT: You only have the raw text of a document — you have NO information about who uploaded it, when, or whether it was authorized. You CANNOT confirm whether something is an actual unauthorized leak just from its content, because a legitimate, officially-released exam paper (e.g. uploaded by a student after the exam is over) will look structurally identical to a leaked one (same booklet codes, signatures, instructions). ' +
+          'Your job is narrower: flag whether this text resembles genuine exam-paper material (question paper, answer key, or other exam-confidential content) that is WORTH a human investigator reviewing — not to declare it a confirmed leak. Base your flag only on content structure (exam instructions, booklet/roll-number fields, answer formats, subject-specific questions), not on assumptions about timing or authorization. ' +
+          'Respond ONLY in strict JSON: {"is_suspected_leak": true/false, "confidence": "High"|"Medium"|"Low", "summary": "one plain-language sentence describing what structural features were found, without asserting this is confirmed to be an unauthorized leak"}',
       },
       {
         role: 'user',
@@ -65,7 +86,6 @@ async function aiClassifyLeak(text) {
   }
 }
 
-// ---------- helper: extract text depending on file type ----------
 async function extractText(filePath, mimetype, originalName) {
   const ext = path.extname(originalName).toLowerCase();
 
@@ -76,9 +96,14 @@ async function extractText(filePath, mimetype, originalName) {
 
   if (ext === '.pdf') {
     const buffer = fs.readFileSync(filePath);
-    const parsed = await pdfParse(buffer);
+    const parser = new PDFParse({ data: buffer });
+    const parsed = await parser.getText();
 
-    if (parsed.text && parsed.text.trim().length > 20) {
+    const cleanedText = parsed.text
+      ? parsed.text.replace(/--\s*\d+\s*of\s*\d+\s*--/gi, '').trim()
+      : '';
+
+    if (cleanedText.length > 300) {
       return parsed.text;
     }
 
@@ -112,7 +137,6 @@ async function extractText(filePath, mimetype, originalName) {
   throw new Error(`Unsupported file type: ${ext}`);
 }
 
-// ---------- POST /api/leak/report-file -> upload any file, auto-detect leak ----------
 router.post('/report-file', leakLimiter, upload.single('file'), async (req, res) => {
   if (!req.file) {
     return res.status(400).json({ error: 'No file uploaded' });
@@ -122,10 +146,49 @@ router.post('/report-file', leakLimiter, upload.single('file'), async (req, res)
     const extractedText = await extractText(req.file.path, req.file.mimetype, req.file.originalname);
     fs.unlinkSync(req.file.path);
 
+    // Content ka fingerprint banao — same file dubara upload hone pe duplicate na bane
+    const contentHash = crypto.createHash('sha256').update(extractedText.trim()).digest('hex');
+
+    const existingIncident = await pool.query(
+      'SELECT id, exam_name FROM incidents WHERE content_hash = $1 LIMIT 1',
+      [contentHash]
+    );
+
+    if (existingIncident.rows.length > 0) {
+      return res.json({
+        already_reported: true,
+        existing_incident_id: existingIncident.rows[0].id,
+        exam_name: existingIncident.rows[0].exam_name,
+        message: 'This exact file has already been analyzed and reported. No duplicate created.',
+      });
+    }
+
     const allPackets = await pool.query('SELECT * FROM packets');
-    const matchedPacket = allPackets.rows.find((p) =>
+
+    let matchedPacket = allPackets.rows.find((p) =>
       extractedText.toLowerCase().includes(p.canary_phrase.toLowerCase())
     );
+    let matchScore = matchedPacket ? 1 : 0;
+    let matchType = matchedPacket ? 'exact' : null;
+
+    if (!matchedPacket) {
+      let bestScore = 0;
+      let bestPacket = null;
+
+      for (const p of allPackets.rows) {
+        const score = fuzzyMatchScore(extractedText, p.canary_phrase);
+        if (score > bestScore) {
+          bestScore = score;
+          bestPacket = p;
+        }
+      }
+
+      if (bestScore >= FUZZY_MATCH_THRESHOLD) {
+        matchedPacket = bestPacket;
+        matchScore = bestScore;
+        matchType = 'fuzzy';
+      }
+    }
 
     if (!matchedPacket) {
       const aiVerdict = await aiClassifyLeak(extractedText);
@@ -133,12 +196,13 @@ router.post('/report-file', leakLimiter, upload.single('file'), async (req, res)
       if (aiVerdict.is_suspected_leak) {
         const incidentId = 'LIVE-AI-' + Date.now();
         await pool.query(
-          `INSERT INTO incidents (id, exam_name, date, year, leak_status, action_taken, description, is_demo_seed)
-           VALUES ($1, 'Unidentified Exam (AI-flagged)', CURRENT_DATE, $2, 'Alleged', 'AI-flagged, pending manual verification', $3, true)`,
+          `INSERT INTO incidents (id, exam_name, date, year, leak_status, action_taken, description, is_demo_seed, content_hash)
+           VALUES ($1, 'Unidentified Exam (AI-flagged)', CURRENT_DATE, $2, 'Alleged', 'AI-flagged, pending manual verification', $3, true, $4)`,
           [
             incidentId,
             new Date().getFullYear(),
             `AI classifier flagged this content as a suspected leak (confidence: ${aiVerdict.confidence}). ${aiVerdict.summary}`,
+            contentHash,
           ]
         );
 
@@ -165,15 +229,17 @@ router.post('/report-file', leakLimiter, upload.single('file'), async (req, res)
     );
     const lastStage = lastLog.rows.length > 0 ? lastLog.rows[0] : null;
 
+    const matchScorePct = (matchScore * 100).toFixed(1);
     const incidentId = 'LIVE-' + Date.now();
     await pool.query(
-      `INSERT INTO incidents (id, exam_name, date, year, leak_status, action_taken, description, is_demo_seed)
-       VALUES ($1, $2, CURRENT_DATE, $3, 'Confirmed', 'Auto-flagged, investigation pending', $4, true)`,
+      `INSERT INTO incidents (id, exam_name, date, year, leak_status, action_taken, description, is_demo_seed, content_hash)
+       VALUES ($1, $2, CURRENT_DATE, $3, 'Confirmed', 'Auto-flagged, investigation pending', $4, true, $5)`,
       [
         incidentId,
         matchedPacket.exam_name,
         new Date().getFullYear(),
-        `Canary phrase match detected from uploaded ${path.extname(req.file.originalname)} file. Packet ${matchedPacket.id} traced to stage: ${lastStage ? lastStage.stage : 'unknown'}, official: ${lastStage ? lastStage.official_name : 'unknown'}.`,
+        `Leak detected via fingerprint matching (${matchType} match, score: ${matchScorePct}%) from uploaded ${path.extname(req.file.originalname)} file. Packet ${matchedPacket.id} traced to stage: ${lastStage ? lastStage.stage : 'unknown'}, official: ${lastStage ? lastStage.official_name : 'unknown'}.`,
+        contentHash,
       ]
     );
 
@@ -181,6 +247,8 @@ router.post('/report-file', leakLimiter, upload.single('file'), async (req, res)
 
     res.json({
       match_found: true,
+      match_type: matchType,
+      match_score: `${matchScorePct}%`,
       packet_id: matchedPacket.id,
       traced_to_stage: lastStage ? lastStage.stage : 'unknown',
       traced_to_official: lastStage ? lastStage.official_name : 'unknown',
@@ -193,7 +261,6 @@ router.post('/report-file', leakLimiter, upload.single('file'), async (req, res)
   }
 });
 
-// ---------- keep the old text-based endpoint too (for quick testing)
 router.post('/report', async (req, res) => {
   const { suspected_text } = req.body;
   try {
@@ -237,51 +304,6 @@ router.post('/report', async (req, res) => {
   }
 });
 
-// Multer errors (file too big, wrong type) ko clean response me convert karo
-router.post('/report', async (req, res) => {
-  const { suspected_text } = req.body;
-  try {
-    const allPackets = await pool.query('SELECT * FROM packets');
-    const matchedPacket = allPackets.rows.find((p) =>
-      suspected_text.toLowerCase().includes(p.canary_phrase.toLowerCase())
-    );
-
-    if (!matchedPacket) {
-      return res.json({ match_found: false, message: 'No canary phrase match found.' });
-    }
-
-    const lastLog = await pool.query(
-      'SELECT * FROM custody_logs WHERE packet_id = $1 ORDER BY timestamp DESC LIMIT 1',
-      [matchedPacket.id]
-    );
-    const lastStage = lastLog.rows.length > 0 ? lastLog.rows[0] : null;
-
-    const incidentId = 'LIVE-' + Date.now();
-    await pool.query(
-      `INSERT INTO incidents (id, exam_name, date, year, leak_status, action_taken, description, is_demo_seed)
-       VALUES ($1, $2, CURRENT_DATE, $3, 'Confirmed', 'Auto-flagged, investigation pending', $4, true)`,
-      [
-        incidentId,
-        matchedPacket.exam_name,
-        new Date().getFullYear(),
-        `Canary phrase match detected. Packet ${matchedPacket.id} traced to stage: ${lastStage ? lastStage.stage : 'unknown'}, official: ${lastStage ? lastStage.official_name : 'unknown'}.`,
-      ]
-    );
-
-    res.json({
-      match_found: true,
-      packet_id: matchedPacket.id,
-      traced_to_stage: lastStage ? lastStage.stage : 'unknown',
-      traced_to_official: lastStage ? lastStage.official_name : 'unknown',
-      new_incident_id: incidentId,
-    });
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: 'Something went wrong on our end. Please try again.' });
-  }
-});
-
-// Multer errors (file too big, wrong type) ko clean response me convert karo
 router.use((err, req, res, next) => {
   if (err instanceof multer.MulterError || err.message.includes('Unsupported file type')) {
     return res.status(400).json({ error: err.message });

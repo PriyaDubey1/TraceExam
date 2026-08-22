@@ -3,10 +3,14 @@ import { createContext, useContext, useState, useEffect } from 'react';
 const ThemeContext = createContext();
 
 export function ThemeProvider({ children }) {
-  const [dark, setDark] = useState(false);
+  const [dark, setDark] = useState(() => {
+    const saved = localStorage.getItem('traceexam-theme');
+    return saved === 'dark';
+  });
 
   useEffect(() => {
     document.body.classList.toggle('dark', dark);
+    localStorage.setItem('traceexam-theme', dark ? 'dark' : 'light');
   }, [dark]);
 
   return (
