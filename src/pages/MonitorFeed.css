@@ -125,6 +125,15 @@
   margin: 0;
   line-height: 1.5;
 }
+.loading-text {
+  color: #666;
+  font-style: italic;
+  margin-bottom: 12px;
+}
+
+body.dark .loading-text {
+  color: #999;
+}
 body.dark .monitor-header h1 {
   color: #F5F5F5;
 }
