@@ -101,14 +101,20 @@ function ReportLeak() {
             </>
           )}
 
-          {!result.match_found && result.ai_flagged && (
-            <>
-              <span className="result-badge suspected">AI Flagged — Suspected Leak</span>
-              <p><strong>Confidence:</strong> {result.confidence}</p>
-              <p className="incident-note">New incident created: {result.new_incident_id}</p>
-            </>
-          )}
-
+          {result.match_found && (
+  <>
+    <span className="result-badge confirmed">Match Found</span>
+    <p><strong>Matched Packet ID:</strong> {result.packet_id}</p>
+    {result.match_score && (
+      <p>
+        <strong>Match type:</strong> {result.match_type === 'fuzzy' ? 'Fuzzy fingerprint match' : 'Exact match'}
+        {' '}(<strong>{result.match_score}</strong> confidence)
+      </p>
+    )}
+    <p><strong>Traced to:</strong> {result.traced_to_stage} (Officer: {result.traced_to_official})</p>
+    <p className="incident-note">New incident created: {result.new_incident_id}</p>
+  </>
+)}
           {!result.match_found && !result.ai_flagged && (
             <span className="result-badge clear">No Leak Detected</span>
           )}
