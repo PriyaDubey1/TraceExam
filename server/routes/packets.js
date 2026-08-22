@@ -2,40 +2,79 @@ const express = require('express');
 const router = express.Router();
 const pool = require('../db');
 const crypto = require('crypto');
+const QRCode = require('qrcode');
 
-// POST /api/custody -> log a custody scan entry
+// POST /api/packets  -> create a new paper packet
 router.post('/', async (req, res) => {
-  const { packet_id, stage, official_name, location } = req.body;
+  const { id, exam_name, canary_phrase } = req.body;
 
-  const validStages = ['press', 'warehouse', 'transport', 'exam_centre'];
-  if (!packet_id || !stage || !official_name || !location) {
-    return res.status(400).json({ error: 'packet_id, stage, official_name, and location are all required.' });
+  if (!id || !exam_name || !canary_phrase) {
+    return res.status(400).json({ error: 'id, exam_name, and canary_phrase are all required.' });
   }
-  if (!validStages.includes(stage)) {
-    return res.status(400).json({ error: `stage must be one of: ${validStages.join(', ')}` });
+  if (id.length > 50 || exam_name.length > 200 || canary_phrase.length > 200) {
+    return res.status(400).json({ error: 'One or more fields exceed maximum length.' });
   }
 
   try {
-    // get the last entry's hash for this packet (to build the chain)
-    const last = await pool.query(
-      'SELECT entry_hash FROM custody_logs WHERE packet_id = $1 ORDER BY timestamp DESC LIMIT 1',
-      [packet_id]
-    );
-    const prev_hash = last.rows.length > 0 ? last.rows[0].entry_hash : 'GENESIS';
-
-    const timestamp = new Date().toISOString();
-    const entry_hash = crypto
-      .createHash('sha256')
-      .update(prev_hash + stage + official_name + timestamp)
-      .digest('hex');
-
+    const paper_hash = crypto.createHash('sha256').update(id + canary_phrase).digest('hex');
     const result = await pool.query(
-      `INSERT INTO custody_logs (packet_id, stage, official_name, location, timestamp, prev_hash, entry_hash)
-       VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *`,
-      [packet_id, stage, official_name, location, timestamp, prev_hash, entry_hash]
+      'INSERT INTO packets (id, exam_name, canary_phrase, paper_hash) VALUES ($1, $2, $3, $4) RETURNING *',
+      [id, exam_name, canary_phrase, paper_hash]
     );
 
-    res.json(result.rows[0]);
+    const qr_code = await QRCode.toDataURL(id);
+
+    res.json({ ...result.rows[0], qr_code });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Something went wrong on our end. Please try again.' });
+  }
+});
+
+// GET /api/packets/:id -> get one packet + its custody trail
+router.get('/:id', async (req, res) => {
+  try {
+    const packet = await pool.query('SELECT * FROM packets WHERE id = $1', [req.params.id]);
+    const logs = await pool.query(
+      'SELECT * FROM custody_logs WHERE packet_id = $1 ORDER BY timestamp ASC',
+      [req.params.id]
+    );
+    if (packet.rows.length === 0) {
+      return res.status(404).json({ error: 'Packet not found' });
+    }
+    res.json({ packet: packet.rows[0], custody_trail: logs.rows });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Something went wrong on our end. Please try again.' });
+  }
+});
+
+// GET /api/packets/:id/verify -> tamper-check the custody hash chain
+router.get('/:id/verify', async (req, res) => {
+  try {
+    const logs = await pool.query(
+      'SELECT * FROM custody_logs WHERE packet_id = $1 ORDER BY timestamp ASC',
+      [req.params.id]
+    );
+    let expectedPrev = 'GENESIS';
+    let isValid = true;
+    let brokenAt = null;
+
+    for (const entry of logs.rows) {
+      const recalculated = crypto
+        .createHash('sha256')
+        .update(expectedPrev + entry.stage + entry.official_name + entry.timestamp)
+        .digest('hex');
+
+      if (entry.prev_hash !== expectedPrev || recalculated !== entry.entry_hash) {
+        isValid = false;
+        brokenAt = entry.stage;
+        break;
+      }
+      expectedPrev = entry.entry_hash;
+    }
+
+    res.json({ packet_id: req.params.id, chain_valid: isValid, broken_at: brokenAt });
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'Something went wrong on our end. Please try again.' });

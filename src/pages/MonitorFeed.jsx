@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Send, AtSign, MessageCircle, Smartphone } from 'lucide-react';
+import { useToast } from '../context/ToastContext';
 import './MonitorFeed.css';
 
 const API_BASE = 'http://localhost:4000';
@@ -13,15 +14,21 @@ const PLATFORM_ICONS = {
 function MonitorFeed() {
   const [posts, setPosts] = useState([]);
   const [scanning, setScanning] = useState(false);
-  const [lastScan, setLastScan] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [lastScanTime, setLastScanTime] = useState(null);
+  const { showToast } = useToast();
 
   const loadFeed = async () => {
     try {
       const res = await fetch(`${API_BASE}/api/monitor/feed`);
+      if (!res.ok) throw new Error('Failed to load feed');
       const data = await res.json();
       setPosts(data);
     } catch (err) {
       console.error(err);
+      showToast('Could not load the monitoring feed. Is the backend running?', 'error');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -33,11 +40,18 @@ function MonitorFeed() {
     setScanning(true);
     try {
       const res = await fetch(`${API_BASE}/api/monitor/scan`, { method: 'POST' });
+      if (!res.ok) throw new Error('Scan failed');
       const data = await res.json();
-      setLastScan(data);
+      setLastScanTime(data.scan_time);
       await loadFeed();
+      if (data.flagged > 0) {
+        showToast(`${data.new_posts_found} new post(s) found — ${data.flagged} flagged as leaks.`, 'error');
+      } else {
+        showToast(`${data.new_posts_found} new post(s) found — all clear, no leaks detected.`, 'success');
+      }
     } catch (err) {
       console.error(err);
+      showToast('Monitoring scan failed. Please try again.', 'error');
     } finally {
       setScanning(false);
     }
@@ -60,8 +74,10 @@ function MonitorFeed() {
       <div className="scan-stats">
         <span>Posts scanned: {posts.filter((p) => p.checked).length} / {posts.length}</span>
         <span>Leaks flagged: {flaggedCount}</span>
-        {lastScan && <span>Last scan: {new Date().toLocaleTimeString()}</span>}
+        {lastScanTime && <span>Last scan: {new Date(lastScanTime).toLocaleTimeString()}</span>}
       </div>
+
+      {loading && <p className="loading-text">Loading feed...</p>}
 
       <div className="feed-list">
         {posts.map((post) => {
